@@ -1,0 +1,6 @@
+[submodule "vendor/php-zmq"]
+	path = vendor/php-zmq
+	url = git://github.com/mkoppanen/php-zmq.git
+[submodule "vendor/libzmq"]
+	path = vendor/libzmq
+	url = https://github.com/zeromq/libzmq.git
