@@ -15,6 +15,13 @@ Server
     $logger->onWarn(function($msg) {  });
     $logger->onNotice(function($msg) {  });
 
+    $logger = new ZLogger\FileLogger( array(  
+        'directory' => '/path/to',
+        'format' =>  ...,
+        'size_limit' => 1024,
+    ));
+    $logger->start();
+
 Client
 ------
 
