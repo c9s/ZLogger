@@ -1,13 +1,26 @@
 <?php
 namespace ZLogger;
 use ZMQ;
+use ZMQContext;
 
 class FileLogger
 {
+
+
+    const default_host = '127.0.0.1';
+
+    const default_port = 5555;
+
     public $sizeLimit;
 
+    /**
+     * default directory 
+     */
     public $directory;
 
+    /**
+     * default file format.
+     */
     public $filepath;
 
     /* zeromq context */
@@ -16,6 +29,10 @@ class FileLogger
     /* event base object */
     public $base;
 
+
+    public $serializer;
+
+    public $unserializer;
 
     /**
      * @var Array event object
@@ -34,6 +51,11 @@ class FileLogger
     public $fp;
 
 
+    /**
+     * zeromq listener 
+     */
+    public $listener;
+
     function __construct($options = array())
     {
         if( ! extension_loaded('zmq') )
@@ -47,6 +69,14 @@ class FileLogger
 
         // use php.strftime format
         $this->filepath = @$options['path'];
+
+        $this->serializer = @$options['serializer'] ?: 'json_encode';
+
+        $this->unserializer = @$options['unserializer'] ?: 'json_decode';
+
+        $this->listener = @$options['listener'] ?: 
+                new Listener('tcp://' . self::default_host . ':' . self::default_port );
+
     }
 
     public function getLogFilepath()
@@ -74,7 +104,10 @@ class FileLogger
         if($arg[0]->getsockopt (ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN) {
 
             echo "Got incoming data" . PHP_EOL;
-            var_dump ($arg[0]->recv());
+            $string = $arg[0]->recv();
+            $data = call_user_func($this->unserializer,$string);
+
+            // fwrite( );
 
             /*
             $arg[0]->send("Got msg $msgs");
@@ -95,8 +128,9 @@ class FileLogger
 
     public function start()
     {
+        // initialize event and zmq context
         $this->fp = $this->openLogFile();
-
+        $this->listener->listen(array($this,'onRecv'));
     }
 }
 

@@ -18,6 +18,7 @@ class Server {
 }
 
 $server = new Server;
+
 // create base and event
 $base = event_base_new();
 $event = event_new();
