@@ -2,6 +2,7 @@
 namespace ZLogger;
 use ZMQ;
 use ZMQContext;
+use Exception;
 
 class FileLogger
 {
@@ -34,6 +35,9 @@ class FileLogger
      */
     public $fp;
 
+    public $host;
+
+    public $port;
 
     /**
      * zeromq listener 
@@ -42,31 +46,26 @@ class FileLogger
 
     function __construct($options = array())
     {
-        if( ! extension_loaded('zmq') )
-            dl('zmq');
-        if( ! extension_loaded('event') )
-            dl('event');
 
         $this->sizeLimit = @$options['size_limit'];
 
         $this->directory = @$options['directory'];
 
+        $this->host = @$options['host'] ?: self::default_host;
+
+        $this->port = @$options['port'] ?: self::default_port;
+
         // use php.strftime format
         $this->filepath = @$options['path'];
 
-        $this->serializer = @$options['serializer'] ?: 'json_encode';
-
-        $this->unserializer = @$options['unserializer'] ?: 'json_decode';
-
         $this->listener = @$options['listener'] ?: 
-                new Listener('tcp://' . self::default_host . ':' . self::default_port );
-
+                new Listener('tcp://' . $this->host . ':' . $this->port );
     }
 
     public function getLogFilepath()
     {
         if( $this->filepath )
-            return strftime( $this->filenameFormat, time() );
+            return strftime( $this->filepath , time() );
         throw new Exception("default filename format is not defined.");
     }
 
@@ -80,27 +79,6 @@ class FileLogger
         return $fp;
     }
 
-    public function onRecv($fd, $events, $arg) {
-    {
-        /*
-        echo "CALLBACK FIRED" . PHP_EOL;
-        */
-        if($arg[0]->getsockopt (ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN) {
-
-            echo "Got incoming data" . PHP_EOL;
-            $string = $arg[0]->recv();
-            $data = call_user_func($this->unserializer,$string);
-
-            // fwrite( );
-
-            /*
-            $arg[0]->send("Got msg $msgs");
-            if($msgs++ >= 10) 
-                event_base_loopexit($arg[1]);
-             */
-        }
-    }
-
     // for time-based log filename, close current file resource,
     // re-open with another filename
     public function truncateLog()
@@ -112,9 +90,14 @@ class FileLogger
 
     public function start()
     {
+        $self = $this;
         // initialize event and zmq context
         $this->fp = $this->openLogFile();
-        $this->listener->listen(array($this,'onRecv'));
+        $this->listener->recv(function($data,$arg) use ($self) {
+            $self->lines++;
+            fwrite( $self->fp , $data['message'] );
+        });
+        $this->listener->listen();
     }
 }
 

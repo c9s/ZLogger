@@ -18,6 +18,11 @@ class Listener
         $this->bind = $bind;
         $this->encoder = new Encoder( @$options['encoder'] );
         $this->decoder = new Decoder( @$options['decoder'] );
+
+        if( ! extension_loaded('zmq') )
+            dl('zmq');
+        if( ! extension_loaded('libevent') )
+            dl('libevent');
     }
 
     function recv($cb)
