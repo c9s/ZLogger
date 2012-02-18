@@ -23,22 +23,6 @@ class FileLogger
      */
     public $filepath;
 
-    /* zeromq context */
-    public $context;
-
-    /* event base object */
-    public $base;
-
-
-    public $serializer;
-
-    public $unserializer;
-
-    /**
-     * @var Array event object
-     */
-    public $events = array();
-
 
     /**
      * content lines
