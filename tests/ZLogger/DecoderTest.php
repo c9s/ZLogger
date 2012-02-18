@@ -27,7 +27,6 @@ class DecoderTest extends PHPUnit_Framework_TestCase
 		$data = $decoder( $encoder(array( 'msg' => 123 )) );
 		ok( $data['msg'] );
 		is( 123, $data['msg'] );
-
 	}
 }
 

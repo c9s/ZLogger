@@ -7,20 +7,31 @@ class Listener
 {
     public $bind;
 
-    public $serializer;
+    public $encoder;
 
-    public $unserializer;
+    public $decoder;
 
-    function __construct($bind = 'tcp://127.0.0.1:5000', $options = array() )
+    public $callback;
+
+    function __construct($bind = 'tcp://127.0.0.1:5555', $options = array() )
     {
         $this->bind = $bind;
-        $this->serializer = @$options['serializer'] ?: 
-            function_exists('bson_encode')  ? 'bson_encode' : 'json_encode';
-        $this->unserializer = @$options['unserializer'] ?:
-            function_exists('bson_decode')  ? 'bson_decode' : 'json_decode';
+        $this->encoder = new Encoder( @$options['encoder'] );
+        $this->decoder = new Decoder( @$options['decoder'] );
     }
 
-    function listen($callback)
+    function recv($cb)
+    {
+        $self = $this;
+        $self->callback = function($fd,$events,$arg) use($self,$cb) {
+            if($arg[0]->getsockopt (ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN) {
+                $string = $arg[0]->recv();
+                $cb( $self->decoder($string,$arg));
+            }
+        };
+    }
+
+    function listen()
     {
         // initialize event and zmq context
 
@@ -41,14 +52,8 @@ class Listener
         // Get the stream descriptor
         $fd = $rep->getsockopt(ZMQ::SOCKOPT_FD);
 
-        $self = $this;
-        $wrapperCB = function($fd,$events,$arg) use($self,$callback) {
-            
-
-        };
-
         // set event flags
-        event_set($event, $fd, EV_READ | EV_PERSIST, $callback , array($rep, $base));
+        event_set($event, $fd, EV_READ | EV_PERSIST, $this->callback , array($rep, $base));
 
         // set event base
         event_base_set($event, $base);
