@@ -93,10 +93,10 @@ class FileLogger
         $self = $this;
         // initialize event and zmq context
         $this->fp = $this->openLogFile();
-        $this->listener->recv(function($data,$arg) use ($self) {
+        $this->listener->recv(function($data,$rep) use ($self) {
             var_dump($data); 
             $self->lines++;
-            fwrite( $self->fp , $data['message'] );
+            fwrite( $self->fp , $data['message'] . PHP_EOL );
         });
         $this->listener->listen();
         fclose($this->fp);

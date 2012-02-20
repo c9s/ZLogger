@@ -3,6 +3,7 @@ namespace ZLogger;
 use ZMQ;
 use ZMQContext;
 use Exception;
+use ZMQSocketException;
 
 class Listener
 {
@@ -28,52 +29,34 @@ class Listener
 
     function recv($cb)
     {
-        $self = $this;
-        $self->callback = function($fd,$events,$arg) use($self,$cb) {
-
-            if($v = $arg[0]->getsockopt(ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN) {
-                $str = $arg[0]->recv();
-                $cb( $self->decoder->decode($str) ,$arg);
-            }
-        };
+        $this->callback = $cb;
     }
 
 
     function listen()
     {
-        // initialize event and zmq context
-
-        // create base and event
-        $base  = event_base_new();
-        $event = event_new();
-
-        // Allocate a new context
+        // create zeromq request/reply 
         $context = new ZMQContext();
-
-        // Create sockets
         $rep = $context->getSocket(ZMQ::SOCKET_REP);
-
-        // Connect the socket
         $rep->bind( $this->bind );
 
-
-        // Get the stream descriptor
-        $fd = $rep->getsockopt(ZMQ::SOCKOPT_FD);
-
-        // set event flags
-        event_set($event, $fd, 
-            EV_READ | EV_PERSIST, 
-            $this->callback,
-            array($rep, $base));
-
-        // set event base
-        event_base_set($event, $base);
-
-        // enable event
-        event_add($event);
-
-        // start event loop
-        event_base_loop($base);
+        try {
+            while(true) {
+                $msg = $rep->recv();
+                $data = $this->decoder->decode($msg);
+                call_user_func_array( $this->callback , array(
+                    $data,
+                    $rep
+                ));
+                $rep->send('1');
+            }
+        } 
+        catch( ZMQSocketException $e ) {
+            $rep->send( $e->getMessage() );
+        }
+        catch( Exception $e ) {
+            $rep->send( $e->getMessage() );
+        }
     }
 }
 
