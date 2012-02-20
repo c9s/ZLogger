@@ -14,10 +14,16 @@ class Encoder
 				? 'json_encode' : 'serialize';
 	}
 
-	function __invoke($string)
+	function __invoke($data)
 	{
-		return call_user_func( $this->cb , $string );
+		return call_user_func( $this->cb , $data );
 	}
+
+    function encode($data)
+    {
+		return call_user_func( $this->cb , $data );
+    }
+
 }
 
 

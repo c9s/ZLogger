@@ -36,7 +36,10 @@ $rep->bind("tcp://127.0.0.1:5555");
 $fd = $rep->getsockopt(ZMQ::SOCKOPT_FD);
 
 // set event flags
-event_set($event, $fd, EV_READ | EV_PERSIST, array($server,"print_line") , array($rep, $base));
+event_set($event, $fd, 
+    EV_READ | EV_PERSIST, 
+    array($server,"print_line"), 
+    array($rep, $base));
 
 // set event base
 event_base_set($event, $base);

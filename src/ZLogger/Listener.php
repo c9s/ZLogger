@@ -2,6 +2,7 @@
 namespace ZLogger;
 use ZMQ;
 use ZMQContext;
+use Exception;
 
 class Listener
 {
@@ -29,12 +30,14 @@ class Listener
     {
         $self = $this;
         $self->callback = function($fd,$events,$arg) use($self,$cb) {
-            if($arg[0]->getsockopt (ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN) {
-                $string = $arg[0]->recv();
-                $cb( $self->decoder($string,$arg));
+
+            if($v = $arg[0]->getsockopt(ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN) {
+                $str = $arg[0]->recv();
+                $cb( $self->decoder->decode($str) ,$arg);
             }
         };
     }
+
 
     function listen()
     {
@@ -58,7 +61,10 @@ class Listener
         $fd = $rep->getsockopt(ZMQ::SOCKOPT_FD);
 
         // set event flags
-        event_set($event, $fd, EV_READ | EV_PERSIST, $this->callback , array($rep, $base));
+        event_set($event, $fd, 
+            EV_READ | EV_PERSIST, 
+            $this->callback,
+            array($rep, $base));
 
         // set event base
         event_base_set($event, $base);

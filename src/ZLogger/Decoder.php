@@ -22,6 +22,16 @@ class Decoder
 		}
 		return $data;
 	}
+
+    function decode($string)
+    {
+		$data = call_user_func( $this->cb , $string );
+		if( $data === null || $data === false ) {
+			throw new Exception( __CLASS__ . ': Can not decode data');
+		}
+		return $data;
+
+    }
 }
 
 

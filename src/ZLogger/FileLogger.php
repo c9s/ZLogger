@@ -94,10 +94,12 @@ class FileLogger
         // initialize event and zmq context
         $this->fp = $this->openLogFile();
         $this->listener->recv(function($data,$arg) use ($self) {
+            var_dump($data); 
             $self->lines++;
             fwrite( $self->fp , $data['message'] );
         });
         $this->listener->listen();
+        fclose($this->fp);
     }
 }
 
