@@ -70,10 +70,8 @@ class Client
             $msg , $style ) , PHP_EOL;
     }
 
-    function send($data)
+    function printMessage(& $data)
     {
-        $msg = $data['message'];
-
         switch( $data['type'] ) {
         case 'I':
             $this->consolePrint( $data['type'] . ': ' . $data['message'] , 'green' );
@@ -88,6 +86,13 @@ class Client
             $this->consolePrint( $data['type'] . ': ' . $data['message'] , 'white' );
             break;
         }
+    }
+
+    function send($data)
+    {
+        $msg = $data['message'];
+        if( $this->console )
+            $this->printMessage($data);
 
         try {
             $payload =  $this->encoder->encode( $data );
