@@ -110,6 +110,32 @@ class Client
         }
     }
 
+
+
+    function debug($message)
+    {
+        return $this->send(array(
+            'type' => 'D',
+            'message' => $message,
+        ));
+    }
+
+    function error($message)
+    {
+        return $this->send(array(
+            'type' => 'E',
+            'message' => $message,
+        ));
+    }
+
+    function warn($message)
+    {
+        return $this->send(array(
+            'type' => 'W',
+            'message' => $message,
+        ));
+    }
+
     function info($message)
     {
         return $this->send(array( 
