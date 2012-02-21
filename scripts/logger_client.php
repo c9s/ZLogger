@@ -14,5 +14,7 @@ $i = 0;
 while(1) {
     $i++;
     $logger->info( "Hello $i" );
+    $logger->warn( "Warning" );
+    $logger->error( "Error" );
     sleep(1);
 }

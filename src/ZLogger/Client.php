@@ -73,6 +73,22 @@ class Client
     function send($data)
     {
         $msg = $data['message'];
+
+        switch( $data['type'] ) {
+        case 'I':
+            $this->consolePrint( $data['type'] . ': ' . $data['message'] , 'green' );
+            break;
+        case 'W':
+            $this->consolePrint( $data['type'] . ': ' . $data['message'] , 'yellow' );
+            break;
+        case 'E':
+            $this->consolePrint( $data['type'] . ': ' . $data['message'] , 'red' );
+            break;
+        case 'D':
+            $this->consolePrint( $data['type'] . ': ' . $data['message'] , 'white' );
+            break;
+        }
+
         try {
             $payload =  $this->encoder->encode( $data );
             $this->socket->send( $payload );
@@ -94,7 +110,6 @@ class Client
                     if(intval($reply) == 1) {
                         if( $this->console ) {
                             // printf("I: server replied OK (%s)%s", $reply, PHP_EOL);
-                            $this->consolePrint( $data['type'] . ': ' . $msg, 'green' );
                         }
                         $expect_reply = false;
                     } else {
@@ -136,7 +151,6 @@ class Client
             }
         }
     }
-
 
 
     function debug($message)
