@@ -23,10 +23,12 @@ class Client
 
     public $requestTimeout;
 
+    public $console;
+
     function __construct( $options = array() )
     {
         $this->bind = @$options['bind'] ?: 'tcp://127.0.0.1:5555';
-        $this->socketId = @$options['socketId'] ?: 'LoggerSock';
+        $this->socketId = @$options['socket_id'] ?: 'LoggerSock';
 
         $this->encoder = new ZLogger\Encoder;
 
@@ -37,6 +39,11 @@ class Client
         $this->requestTimeout  = @$options['timeout'] ?: 1000;
 
         $this->socket = $this->newSocket( $this->context );
+
+        /**
+         * if we are in command-line mode, we should prompt retry,error info 
+         * */
+        $this->console = @$options['console'] ?: false;
     }
 
     function newSocket($context)
@@ -68,25 +75,32 @@ class Client
                     //  We got a reply from the server, must match sequence
                     $reply = $this->socket->recv();
                     if(intval($reply) == 1) {
-                        printf ("I: server replied OK (%s)%s", $reply, PHP_EOL);
+                        if( $this->console )
+                            printf ("I: server replied OK (%s)%s", $reply, PHP_EOL);
                         // $retries_left = $this->maxRetry;
                         $expect_reply = false;
                     } else {
-                        printf ("E: malformed reply from server: %s%s", $reply, PHP_EOL);
+                        if( $this->console )
+                            printf ("E: malformed reply from server: %s%s", $reply, PHP_EOL);
                     }
                 } else if(--$retries_left == 0) {
                     // throw exception
-                    echo "E: server seems to be offline, abandoning", PHP_EOL;
+                    if( $this->console )
+                        echo "E: server seems to be offline, abandoning", PHP_EOL;
                     break;
                 } else {
-                    echo "W: no response from server, retrying…", PHP_EOL;
+                    if( $this->console )
+                        echo "W: no response from server, retrying…", PHP_EOL;
 
                     try {
                         //  Old socket will be confused; close it and open a new one
                         $socket = $this->newSocket($this->context);
                         //  Send request again, on new socket
                         $socket->send( $payload );
-                    } catch( Exception $e ) {  }
+                    } catch( Exception $e ) { 
+                        if( $this->console )
+                            echo $e->getMessage() , PHP_EOL;
+                    }
 
                 }
             }
@@ -103,14 +117,16 @@ class Client
             'message' => $message,
         ));
     }
-
-
 }
-
 
 // Assign socket 1 to the queue, send and receive
 // var_dump($queue->send("hello there!"));
-$logger = new Client;
+$logger = new Client(array( 
+    'socket_id' => 'logger_sock',
+    'timeout' => 1000,
+    'retry' => 3,
+    'console' => true,
+));
 
 $i = 0;
 while(1) {
