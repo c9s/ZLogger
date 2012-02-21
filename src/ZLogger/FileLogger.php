@@ -44,6 +44,8 @@ class FileLogger
      */
     public $listener;
 
+    public $quiet = false;
+
     function __construct($options = array())
     {
 
@@ -94,9 +96,11 @@ class FileLogger
         // initialize event and zmq context
         $this->fp = $this->openLogFile();
         $this->listener->recv(function($data,$rep) use ($self) {
-            var_dump($data); 
             $self->lines++;
             fwrite( $self->fp , $data['message'] . PHP_EOL );
+            if( ! $self->quiet ) {
+                echo $data['type'] , ': ' , $data['message'] , PHP_EOL;
+            }
         });
         $this->listener->listen();
         fclose($this->fp);

@@ -4,5 +4,5 @@ require 'tests/bootstrap.php';
 $logger = new ZLogger\FileLogger(array( 
     'path' => 'log/info.log',
 ));
-echo "Listening...\n";
+echo "Listening " . $logger->listener->bind . "...\n";
 $logger->start();
