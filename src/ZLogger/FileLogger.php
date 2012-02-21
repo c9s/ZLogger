@@ -9,11 +9,6 @@ class FileLogger
     public $sizeLimit;
 
     /**
-     * default directory 
-     */
-    public $directory;
-
-    /**
      * default file format.
      */
     public $filepath;
@@ -42,8 +37,6 @@ class FileLogger
     {
 
         $this->sizeLimit = @$options['size_limit'];
-
-        $this->directory = @$options['directory'];
 
         // use php.strftime format
         $this->filepath = @$options['path'];
