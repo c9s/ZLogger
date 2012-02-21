@@ -4,31 +4,30 @@ ZLogger
 Server
 ------
 
-    $logger = new ZLogger\Logger;
-    $logger->bind( '127.0.0.1' , 8000 );
-    $logger->onError(function($msg) {
-
-    });
-    $logger->onInfo(function($msg) {
-
-    });
-    $logger->onWarn(function($msg) {  });
-    $logger->onNotice(function($msg) {  });
-
-    $logger = new ZLogger\FileLogger( array(  
-        'directory' => '/path/to',
-        'format' =>  ...,
-        'size_limit' => 1024,
-    ));
-    $logger->start();
+```php
+<?php
+$logger = new ZLogger\FileLogger(array( 
+    'bind' => 'tcp://127.0.0.1:5555',
+    'path' => 'log/info.log',
+));
+echo "Listening " . $logger->bind . "...\n";
+$logger->start();
+```
 
 Client
 ------
 
-    $client = new ZLogger\Client;
-    $client->info( 'message' , [ ... extra information ]);
-    $client->warn( 'message' , [ ... extra information ]);
-    $client->notice( 'message' , [ ... extra information ]);
+```php
+<?php
+$logger = new ZLogger\Client(array( 
+    'socket_id' => 'logger_sock',
+    'timeout' => 1000,
+    'retry' => 3,
+    'console' => true,
+));
+
+$logger->info( "Hello $i" );
+```
 
 Log Message Structure
 -----------------------
@@ -47,8 +46,5 @@ log type define:
 * warn
 * notice
 * exception
-
-
-
 
 
