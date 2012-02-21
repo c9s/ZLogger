@@ -45,10 +45,6 @@ class FileLogger
 
         $this->directory = @$options['directory'];
 
-        $this->host = @$options['host'] ?: self::default_host;
-
-        $this->port = @$options['port'] ?: self::default_port;
-
         // use php.strftime format
         $this->filepath = @$options['path'];
 
