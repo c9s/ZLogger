@@ -6,12 +6,6 @@ use Exception;
 
 class FileLogger
 {
-
-
-    const default_host = '127.0.0.1';
-
-    const default_port = 5555;
-
     public $sizeLimit;
 
     /**
@@ -35,16 +29,14 @@ class FileLogger
      */
     public $fp;
 
-    public $host;
-
-    public $port;
-
     /**
      * zeromq listener 
      */
     public $listener;
 
     public $quiet = false;
+
+    public $bind = 'tcp://127.0.0.1:5555';
 
     function __construct($options = array())
     {
@@ -60,8 +52,10 @@ class FileLogger
         // use php.strftime format
         $this->filepath = @$options['path'];
 
+        $this->bind = @$options['bind'] ?: 'tcp://127.0.0.1:5555';
+
         $this->listener = @$options['listener'] ?: 
-                new Listener('tcp://' . $this->host . ':' . $this->port );
+                new Listener( $this->bind );
     }
 
     public function getLogFilepath()
